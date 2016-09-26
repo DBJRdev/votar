@@ -37,32 +37,11 @@
          android:fitsSystemWindows.
     -->
 
-    <RelativeLayout
-        android:id="@+id/relativeLayout"
+    <WebView
+        android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1" >
-
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/photo_of_the_audience"
-            android:cropToPadding="true"
-            android:gravity="left"
-            android:scaleType="centerInside" />
-
-        <TextView
-            android:id="@+id/introLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="false"
-            android:layout_margin="10dp"
-            android:text="@string/intro"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
-
-    </RelativeLayout>
+        android:layout_weight="1" />
 
         <LinearLayout
             android:id="@+id/controlLayout"
@@ -72,92 +51,6 @@
             android:layout_weight="1"
             android:minWidth="280dip"
             android:orientation="vertical" >
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" >
-
-                <TextView
-                    android:id="@+id/label_a"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/vote_a"
-                    android:textColor="@color/white" />
-
-                <ProgressBar
-                    android:id="@+id/bar_a"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
-                    android:max="100"
-                    android:progress="10"
-                    android:progressDrawable="@drawable/bar_a" />
-
-                <TextView
-                    android:id="@+id/label_b"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/vote_b"
-                    android:textColor="@color/white" />
-
-                <ProgressBar
-                    android:id="@+id/bar_b"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
-                    android:max="100"
-                    android:progress="10"
-                    android:progressDrawable="@drawable/bar_b" />
-
-                <TextView
-                    android:id="@+id/label_c"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/vote_c"
-                    android:textColor="@color/white" />
-
-                <ProgressBar
-                    android:id="@+id/bar_c"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
-                    android:max="100"
-                    android:progress="10"
-                    android:progressDrawable="@drawable/bar_c" />
-
-                <TextView
-                    android:id="@+id/label_d"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="top"
-                    android:text="@string/vote_d"
-                    android:textColor="@color/white" />
-
-                <ProgressBar
-                    android:id="@+id/bar_d"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:max="100"
-                    android:progress="10"
-                    android:progressDrawable="@drawable/bar_d" />
-
-                <TextView
-                    android:id="@+id/label_wifi"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/wifidisabled"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:paddingTop="10dip"
-                    />
-                
-
-            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/fullscreen_content_controls"

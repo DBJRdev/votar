@@ -16,19 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.poinsart.votar;
+package com.poinsart.votar.data;
 
-public class Mark {
+
+public class Session {
 	// position of the mark
-	public int x;
-	public int y;
+	protected int start;
+	protected int end;
 	
-	// pattern rotation
-	public int pr;
-	
-	public Mark(int x, int y, int pr) {
-		this.x=x;
-		this.y=y;
-		this.pr=pr;
-	}
 }

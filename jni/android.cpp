@@ -162,9 +162,9 @@ JNIEXPORT jboolean JNICALL Java_com_poinsart_votar_VotarMain_00024AnalyzeTask_na
 		return false;
 	}
 
-	jclass jmarkClass=env->FindClass("com/poinsart/votar/Mark");
+	jclass jmarkClass=env->FindClass("com/poinsart/votar/data/Mark");
 	if (jmarkClass==NULL) {
-		Log_e("Internal Error: failed to find java class com/poinsart/votar/Mark");
+		Log_e("Internal Error: failed to find java class com/poinsart/votar/data/Mark");
 		return false;
 	}
 
@@ -202,7 +202,7 @@ JNIEXPORT jboolean JNICALL Java_com_poinsart_votar_VotarMain_00024AnalyzeTask_na
 
 
 	// mark[]
-	jfieldID markField = env->GetFieldID(arClass, "mark", "[Lcom/poinsart/votar/Mark;");
+	jfieldID markField = env->GetFieldID(arClass, "mark", "[Lcom/poinsart/votar/data/Mark;");
 	if (markField == NULL) {
 		Log_e("Failed to find field mark.");
 		return false;
@@ -260,7 +260,7 @@ JNIEXPORT jboolean JNICALL Java_com_poinsart_votar_VotarMain_00024AnalyzeTask_na
 
 	jmethodID jmarkConstructor=env->GetMethodID(jmarkClass, "<init>", "(III)V");
 	if (jmarkConstructor==NULL) {
-		Log_e("Internal Error: failed to find constructor for java class com/poinsart/votar/Mark");
+		Log_e("Internal Error: failed to find constructor for java class com/poinsart/votar/data/Mark");
 		return false;
 	}
 	jobjectArray jmarkArray=env->NewObjectArray(markcount, jmarkClass, NULL);

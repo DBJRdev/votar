@@ -22,19 +22,25 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.lang.System;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 
-import org.json.JSONArray;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import com.poinsart.votar.data.JsonString;
+import com.poinsart.votar.data.Mark;
+import com.poinsart.votar.data.Vote;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -49,11 +55,10 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.widget.ImageView;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -79,6 +84,7 @@ public class VotarMain extends Activity {
 	private Uri cameraFileUri;
 	public String lastPhotoFilePath=null;
 	public String lastPointsJsonString=null;
+	public File mediaStorageDir=null;
 
 	/** Create a file Uri for saving an image or video */
 
@@ -91,12 +97,9 @@ public class VotarMain extends Activity {
 	private static final int CAMERA_PERMISSION=1;
 	private static final int STORAGE_PERMISSION=2;
 	
-	private ImageView imageView;
-	private ProgressBar bar[]= {null, null, null, null};
-	private TextView barLabel[]={null, null, null, null};
+	private WebView webView;
 	public TextView wifiLabel=null, introLabel=null;
 	private LinearLayout mainLayout, controlLayout;
-	private RelativeLayout relativeLayout;
 	
 	public CountDownLatch photoLock;
 	public CountDownLatch pointsLock;
@@ -108,6 +111,7 @@ public class VotarMain extends Activity {
 	
 	private VotarWebServer votarwebserver;
 	public AssetManager assetMgr;
+	public List<Vote> allvotes;
 	
 	public void errormsg(String message) {
 		Log.w("VotAR error", message);
@@ -126,42 +130,31 @@ public class VotarMain extends Activity {
             }
         });
 	}
+	public VotarSQLiteOpenHelper dbHelper;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 	    System.loadLibrary("VotAR");
 	    super.onCreate(savedInstanceState);
+	    
+	    dbHelper=new VotarSQLiteOpenHelper(this);
+	    
+	    allvotes=dbHelper.getAllVotes();
+	    
 		setContentView(R.layout.activity_main);
 		assetMgr = this.getAssets();
 		
-		imageView = (ImageView) findViewById(R.id.imageView);
-		bar[0]=(ProgressBar) findViewById(R.id.bar_a);
-		bar[1]=(ProgressBar) findViewById(R.id.bar_b);
-		bar[2]=(ProgressBar) findViewById(R.id.bar_c);
-		bar[3]=(ProgressBar) findViewById(R.id.bar_d);
-		
-		barLabel[0]=(TextView) findViewById(R.id.label_a);
-		barLabel[1]=(TextView) findViewById(R.id.label_b);
-		barLabel[2]=(TextView) findViewById(R.id.label_c);
-		barLabel[3]=(TextView) findViewById(R.id.label_d);
-		
-		wifiLabel=(TextView) findViewById(R.id.label_wifi);
-		introLabel=((TextView)findViewById(R.id.introLabel));
+		webView = (WebView) findViewById(R.id.webView);
+		WebSettings webSettings = webView.getSettings();
+		webSettings.setJavaScriptEnabled(true);
 		
 		mainLayout=((LinearLayout)findViewById(R.id.mainLayout));
 		controlLayout=((LinearLayout)findViewById(R.id.controlLayout));
-		relativeLayout=((RelativeLayout)findViewById(R.id.relativeLayout));
 		
 		
 		adjustLayoutForOrientation(getResources().getConfiguration().orientation);
 		
-		findViewById(R.id.introLabel).setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://votar.libre-innovation.org/help/"));
-				startActivity(browserIntent);
-			}
-		});
 
 		findViewById(R.id.buttonCamera).setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -189,6 +182,7 @@ public class VotarMain extends Activity {
 		} catch (IOException e) {
 			this.errormsg(getString(R.string.error_nowebserver));
 		}
+//		webView.loadUrl("http://127.0.0.1:51285");
 	}
 	
 	void a60Camera() {
@@ -211,8 +205,10 @@ public class VotarMain extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (votarwebserver!=null)
+		if (votarwebserver!=null) {
 			votarwebserver.stop();
+			votarwebserver=null;
+		}
 	}
 	
 	@Override
@@ -237,7 +233,7 @@ public class VotarMain extends Activity {
 		alert.show();
 	}
 	
-	private void startCamera() {
+	public void startCamera() {
 		Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
 		if (cameraIntent.resolveActivity(getPackageManager()) == null) {
 			VotarMain.this.errormsg(getString(R.string.error_photoapplaunch));
@@ -278,31 +274,40 @@ public class VotarMain extends Activity {
 	}
 	
 	/** Create a File for saving an image or video */
-	@SuppressLint("SimpleDateFormat")
+	//@SuppressLint("SimpleDateFormat")
 	private File getOutputMediaFile(int type){
 	    // To be safe, you should check that the SDCard is mounted
 	    // using Environment.getExternalStorageState() before doing this.
-		File mediaStorageDir;
 		
 		if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
 			this.errormsg(getString(R.string.error_extstorage));
 			return null;
 		}
+		if (mediaStorageDir==null) {
 		
-		if (Build.VERSION.SDK_INT<23) {
+			mediaStorageDir = new File(getExternalFilesDir(null), "VotAR");
+		
+			// Create the storage directory if it does not exist
+			if (! mediaStorageDir.exists()){
+				if (! mediaStorageDir.mkdirs()){
+					mediaStorageDir=null;
+					this.errormsg(getString(R.string.error_createphotodir));
+					return null;
+				}
+			}
+
+			mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+	              Environment.DIRECTORY_PICTURES), "VotAR");
 			// This location works best if you want the created images to be shared
 			// between applications and persist after your app has been uninstalled.
-			mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-					Environment.DIRECTORY_PICTURES), "VotAR");
-		} else {
-			mediaStorageDir = new File(getExternalFilesDir(null), "VotAR");
-		}
-		
-		// Create the storage directory if it does not exist
-		if (! mediaStorageDir.exists()){
-			if (! mediaStorageDir.mkdirs()){
-				this.errormsg(getString(R.string.error_createphotodir));
-				return null;
+	    
+			// Create the storage directory if it does not exist
+			if (! mediaStorageDir.exists()) {
+				if (! mediaStorageDir.mkdirs()) {
+					mediaStorageDir=null;
+					this.errormsg(getString(R.string.error_createphotodir));
+					return null;
+				}
 			}
 		}
 
@@ -347,10 +352,10 @@ public class VotarMain extends Activity {
     public boolean updateWifiStatus() {
     	String wifiIp=getWifiIp();
 		if (wifiIp!=null) {
-			wifiLabel.setText("http://"+wifiIp+":51285");
+			//wifiLabel.setText("http://"+wifiIp+":51285");
 			return true;
 		}
-		wifiLabel.setText(getString(R.string.nowificon));
+		//wifiLabel.setText(getString(R.string.nowificon));
 		return false;
     }
     
@@ -494,7 +499,7 @@ public class VotarMain extends Activity {
 			}
 			// nativeAnalyze returns null if anything goes wrong, just silently ignore
 			if (prcount!=null && ar.mark!=null) {
-				int max=0;
+/*				int max=0;
 				for (int i=0; i<4; i++) {
 					if (prcount[i]>max)
 						max=prcount[i];
@@ -504,8 +509,31 @@ public class VotarMain extends Activity {
 					bar[i].setMax(max);
 					bar[i].setProgress(prcount[i]);
 				}
-
-				writeJsonPoints(ar.mark);
+*/
+				JSONArray jsonmarks=new JSONArray();
+				for (int i=0; i<ar.mark.length; i++) {
+					JSONArray jsoncurrentmark=new JSONArray(Arrays.asList(new Integer[]{ar.mark[i].x*opt.inSampleSize, ar.mark[i].y*opt.inSampleSize, ar.mark[i].pr}));
+					jsonmarks.add(jsoncurrentmark);
+				}
+				Vote vote=new Vote();
+				vote.jsonmarks=new JsonString(jsonmarks.toString());
+				vote.change_time=vote.create_time=System.currentTimeMillis() / 1000;
+				vote.prcount[0]=prcount[0];
+				vote.prcount[1]=prcount[1];
+				vote.prcount[2]=prcount[2];
+				vote.prcount[3]=prcount[3];
+				allvotes.add(vote);
+				
+				vote=dbHelper.insertVote(vote);
+				if (vote.id>=0) {
+					File from=new File(lastPhotoFilePath);
+					File to=new File(mediaStorageDir, vote.id+"-full.jpg");
+					if (from.exists() && from.isFile()) {
+						from.renameTo(to);
+					}
+				}
+				
+				/*
 				
 				if (photo.getWidth()>relativeLayout.getWidth() && photo.getHeight()>relativeLayout.getHeight()) {
 					int maxWidth, maxHeight;
@@ -523,8 +551,7 @@ public class VotarMain extends Activity {
 					photo=Bitmap.createScaledBitmap(photo, maxWidth, maxHeight, true);
 				}
 				
-				introLabel.setVisibility(View.GONE);
-				imageView.setImageBitmap(photo);
+				introLabel.setVisibility(View.GONE);*/
 			}
 
 
@@ -536,7 +563,7 @@ public class VotarMain extends Activity {
 	/*
 	 *  for now this just save the points into a json string,
 	 *  could use a file for more permanent storage
-	 */
+	 *//*
 	private void writeJsonPoints(Mark mark[]) {
 		if (mark==null)
 			return;
@@ -546,7 +573,7 @@ public class VotarMain extends Activity {
 			jsonmark.put(jsoncurrentmark);
 		}
 		lastPointsJsonString=jsonmark.toString();
-	}
+	}*/
 	
 	private int computeSampleSize(int w, int h) {
 		int pixelCount=w*h;

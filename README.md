@@ -11,6 +11,7 @@ to learn more about VotAR.
 For end-user informations about VotAR, see: http://votar.libre-innovation.org
 For any question about VotAR, ask: s@poinsart.com
 
+
 Contribute
 ----------
 
@@ -20,20 +21,30 @@ to use the NDK. You can follow the guide on the
 [official documentation](http://developer.android.com/ndk/guides/setup.html#install).
 
 
-
 Author
 ------
 
-Stephane Poinsart and [contributors](https://github.com/stephanepoinsart/votar/graphs/contributors).
+Stephane Poinsart and [contributors](https://framagit.org/stephanep/votar/graphs/master).
+
+
+License
+-------
+
+The following license information applies to :
+    - every file distributed on https://framagit.org/stephanep/votar
+    - the binary file distributed on https://play.google.com/store/apps/details?id=com.poinsart.votar
+
+With the exception of 3rd party library detailed bellow that comes with their own libre/opensource license :
+    - nanohttpd -  Tiny, easily embeddable HTTP server in Java ; by Paul S. Hawke, Jarno Elonen and
+      Konstantinos Togias ; http://nanohttpd.org/
+    - JSON.simple - A simple Java toolkit for JSON ; FangYidong ; https://code.google.com/archive/p/json-simple/
+Directories containing those projects are identifiable by the LICENSE file
+
 
 License
 -------
 
 Copyright (C) 2013 Stephane Poinsart <s@poinsart.com>
-
-The following license information applies to :
-    - every file distributed on https://github.com/stephanepoinsart/votar/
-    - the binary file distributed on https://play.google.com/store/apps/details?id=com.poinsart.votar
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as

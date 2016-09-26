@@ -1,5 +1,7 @@
 package com.poinsart.votar;
 
+import com.poinsart.votar.data.Mark;
+
 import android.graphics.Bitmap;
 
 public class AnalyzeReturn {
