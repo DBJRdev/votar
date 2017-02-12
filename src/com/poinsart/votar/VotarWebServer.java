@@ -50,7 +50,7 @@ import org.nanohttpd.protocols.http.response.Status;
 public class VotarWebServer extends NanoHTTPD {
 	private VotarMain mainact;
 
-	public static final int SOCKET_READ_TIMEOUT = 65000;
+	public static final int SOCKET_READ_TIMEOUT = 125000;
 
 	public VotarWebServer(int port, VotarMain mainact) {
 		super(port);
@@ -225,6 +225,9 @@ public class VotarWebServer extends NanoHTTPD {
 				}
 				return http_votes(startid, endid, startcreate, endcreate, startchange, endchange);
 			}
+			if (path[0].equals("events")) {
+				// ### TODO
+			}
 			if (path[0].equals("photo")) {
 				if (path.length != 1) {
 					return http_error(Status.BAD_REQUEST);
@@ -259,6 +262,7 @@ public class VotarWebServer extends NanoHTTPD {
 				
 				return http_delete_vote(id);
 			}
+			
 		default:
 		}
 		return http_error(Status.BAD_REQUEST);
